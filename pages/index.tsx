@@ -5,10 +5,7 @@ First note - in Next.js pages have to be exported at the end of the file
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useSearchAnimes } from "../utils/useAPIRequests";
-import { useQuery } from "@tanstack/react-query";
-import { request, gql, GraphQLClient } from "graphql-request";
+import { useState } from "react";
 import Head from "next/head";
 import styled from "styled-components";
 import Header from "../components/Header";
@@ -18,35 +15,6 @@ const Content = styled.div`
   min-height: calc(100vh - 166px);
 `;
 
-/* Search functions below */
-const searchQuery = gql`
-  query ($search: String) {
-    Page {
-      media(search: $search) {
-        id
-        title {
-          english
-        }
-      }
-    }
-  }
-`;
-
-const searchAnimes = async (searchTerm: String) => {
-  const ANILIST_QUERY_URL = "https://graphql.anilist.co";
-
-  const client = new GraphQLClient(ANILIST_QUERY_URL, {
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  });
-  const searchResults = await client.request(searchQuery, {
-    search: searchTerm,
-  });
-  return searchResults;
-};
-
 interface SearchItemType {
   id: Number;
   title: {
@@ -54,33 +22,9 @@ interface SearchItemType {
   };
 }
 
-/* Component starts here */
-
 const Home = () => {
   const [searchBar, setSearchBar] = useState<string>("");
   const [resultsList, setResultsList] = useState([]);
-
-  const { status, data } = useQuery(["searchAnimes", searchBar], () =>
-    searchAnimes(searchBar)
-  );
-  // useEffect(() => {
-  //   setResultsList(data)
-  // }, [])
-  useEffect(() => {
-    if (data) {
-      const cleanResults = data.Page.media.filter(
-        (item: SearchItemType) => item.title.english
-      );
-      //  console.log(cleanResults);
-      setResultsList(cleanResults);
-      //  console.log(data.Page.media)
-      // setResultsList(data.Page.media)
-    }
-  }, [data]);
-
-  if (data) {
-    console.log(resultsList, searchBar);
-  }
 
   return (
     <>
