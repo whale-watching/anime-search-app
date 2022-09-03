@@ -9,14 +9,24 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@mui/icons-material": "^5.10.3",
+    "@mui/material": "^5.10.3",
+    "@mui/styled-engine-sc": "^5.10.3",
     "@tanstack/react-query": "^4.2.3",
     "@tanstack/react-query-devtools": "^4.2.3",
-    "bootstrap": "^5.2.0",
+    "@types/react-redux": "^7.1.24",
+    "axios": "^0.27.2",
     "graphql-request": "^5.0.0",
     "next": "12.2.5",
+    "next-redux-wrapper": "^7.0.5",
     "react": "18.2.0",
-    "react-bootstrap": "^2.5.0",
     "react-dom": "18.2.0",
+    "react-redux": "^8.0.2",
+    "redux": "^4.2.0",
+    "redux-devtools-extension": "^2.13.9",
+    "redux-thunk": "^2.4.1",
     "styled-components": "^5.3.5"
   },
   "devDependencies": {
@@ -28,6 +38,7 @@
     "eslint-config-next": "12.2.5",
     "typescript": "4.8.2"
   },
+  "proxy": "https://api.jikan.moe/v4/anime/",
   "resolutions": {
     "styled-components": "^5"
   }

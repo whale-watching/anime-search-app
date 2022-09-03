@@ -1,65 +1,47 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useQuery } from "@tanstack/react-query";
-import { FormControl } from "react-bootstrap";
 import useMediaQuery from "../utils/useMediaQuery";
-import { request, gql, GraphQLClient } from "graphql-request";
 import { useSearchAnimes } from "../utils/useAPIRequests";
+import {
+  TextField,
+  Modal,
+  Fade,
+  Box,
+  Typography,
+  Backdrop,
+  InputAdornment,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 
-const Navbar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 58px;
-  border-bottom: solid 1px #dddddd;
-`;
+const Search = (props: any) => (
+  <TextField
+    sx={{
+      maxHeight: "35px",
+      minWidth: "30px",
+      width: "400px",
+      background: "#eeeeee",
+      borderRadius: "30px",
+      "& input": {
+        padding: 0,
+        height: "35px",
+      },
+    }}
+    {...props}
+  >
+    {props.children}
+  </TextField>
+);
 
-const Logo = styled.div`
-  font-size: 24px;
-  font-weight: 600;
-`;
-
-const Search = styled(FormControl)`
-  min-height: 35px;
-  min-width: 50px;
-  background: #eeeeee;
-  border-radius: 30px;
-  border: 0px;
-  padding-left: 38px;
-`;
-
-const TimeDisplay = styled.div`
-  font-weight: 500;
-  font-size: 14px;
-`;
-
-const searchQuery = gql`
-  query ($search: String) {
-    Page {
-      media(search: $search) {
-        id
-        title {
-          english
-        }
-      }
-    }
-  }
-`;
-
-const searchAnimes = async (searchTerm: String) => {
-  const ANILIST_QUERY_URL = "https://graphql.anilist.co";
-
-  const client = new GraphQLClient(ANILIST_QUERY_URL, {
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-  });
-  const searchResults = await client.request(searchQuery, {
-    search: searchTerm,
-  });
-  return searchResults;
+const style = {
+  position: "absolute" as "absolute",
+  top: "30%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  borderRadius: "20px",
+  boxShadow: 24,
 };
 
 interface SearchItemType {
@@ -74,7 +56,7 @@ const Header = (props: any) => {
 
   const dateOptions: Intl.DateTimeFormatOptions = {
     day: "numeric",
-    month: "short",
+    month: "long",
   };
 
   const dateFormat = new Intl.DateTimeFormat(useRouter().locale, dateOptions);
@@ -84,37 +66,82 @@ const Header = (props: any) => {
 
   const { searchBar, setSearchBar, resultsList, setResultsList } = props;
 
-  const { status, data } = useQuery(["searchAnimes", searchBar], () =>
-    searchAnimes(searchBar)
-  );
-  useEffect(() => {
-    if (data) {
-      const cleanResults = data.Page.media.filter(
-        (item: SearchItemType) => item.title.english
-      );
-      setResultsList(cleanResults);
-    }
-  }, [data, setResultsList]);
-
-  console.log("resultList", resultsList);
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
 
   return (
-    <Navbar>
-      <Logo>Anime</Logo>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        minHeight: "58px",
+        borderBottom: "solid 1px #dddddd",
+      }}
+    >
+      <Typography variant="h4">Anime</Typography>
       <Search
         placeholder="Search"
-        value={searchBar}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          e.preventDefault();
-          setSearchBar(e.target.value);
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
         }}
+        variant="standard"
+        onClick={handleOpen}
       />
-      <TimeDisplay>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open}
+        onClose={handleClose}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+        }}
+      >
+        <Fade in={open}>
+          <Box sx={style}>
+            <Search
+              placeholder="Search"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+              value={searchBar}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                e.preventDefault();
+                setSearchBar(e.target.value);
+              }}
+            />
+            <ul>
+              {resultsList.length !== 0 ? (
+                resultsList.map((item: SearchItemType) => (
+                  <Link key={String(item.id)} href={`/animes/${item.id}`}>
+                    <li>{item.title.english}</li>
+                  </Link>
+                ))
+              ) : (
+                <li>No results here!</li>
+              )}
+            </ul>
+          </Box>
+        </Fade>
+      </Modal>
+      
+      <Typography variant="body1">
         {matches
-          ? `Today is ${fechaDay}th of ${fechaMonth}.`
+          ? `Today is the ${fechaDay}th of ${fechaMonth}.`
           : `${fechaMonth} ${fechaDay}th`}
-      </TimeDisplay>
-    </Navbar>
+      </Typography>
+    </Box>
   );
 };
 
