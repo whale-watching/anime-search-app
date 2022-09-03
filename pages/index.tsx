@@ -6,20 +6,26 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CardItem from "../components/CardItem";
 import { fetchAnimeData } from "../store/actions/main";
-import { Box, Button, TextField, Icon } from "@mui/material";
+import { Box, Button, TextField, Icon, ListItem } from "@mui/material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 const Content = styled.div`
-  min-height: calc(100vh - 166px);
+  min-height: calc(100vh - 200px);
+`;
+
+const Pagenation = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center
 `;
 
 interface SearchItemType {
-  id: Number;
-  title: {
-    english: String;
-  };
+  mal_id: Number;
+  title: String;
+  image_url: String;
 }
 
 const Home = () => {
@@ -31,9 +37,23 @@ const Home = () => {
 
   useEffect(() => {
     dispatch<any>(fetchAnimeData(pageNumber));
-  }, [pageNumber]);
+  }, [pageNumber, dispatch]);
 
   const pageData = useSelector((state: any) => state.main.currentPageData);
+
+  console.log("pageData", pageData);
+  
+  useEffect(() => {
+    if (pageData.length !== 0) {
+      setResultsList(pageData.data.map((value:any) => {
+        return {
+          mal_id: value.mal_id,
+          title: value.title,
+          image_url: value.images.webp.image_url
+        }
+      }))
+    }
+  }, [pageData])
 
   const handlePagePrevious = () => {
     setPageNumber(pageNumber - 1);
@@ -56,32 +76,30 @@ const Home = () => {
         <Content>
           {resultsList.length !== 0 ? (
             resultsList.map((item: SearchItemType) => (
-              <Link key={String(item.id)} href={`/animes/${item.id}`}>
-                <li>{item.title.english}</li>
+              <Link key={String(item.mal_id)} href={`/animes/${item.mal_id}`}>
+                <CardItem title={item.title} image_url={item.image_url} />
               </Link>
             ))
           ) : (
             <li>No results here!</li>
           )}
         </Content>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+        <Pagenation>
           <Button disabled={pageNumber === 1} onClick={handlePagePrevious}>
             <ArrowBackIosIcon />
           </Button>
-          <TextField value={pageNumber} />
+          <TextField
+            type="number"
+            inputProps={{ min: 0, max: pageData?.pagination?.last_visible_page }}
+            value={pageNumber}
+          />
           <Button
-            disabled={!pageData?.pagination.has_next_page}
+            disabled={!pageData?.pagination?.has_next_page}
             onClick={handlePageNext}
           >
             <ArrowForwardIosIcon />
           </Button>
-        </Box>
+        </Pagenation>
         <Footer />
       </div>
     </>
