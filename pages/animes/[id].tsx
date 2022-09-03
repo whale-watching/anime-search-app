@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useGetSingleAnime } from "../../utils/useAPIRequests";
-import styles from "../../styles/singleAnime.module.scss";
 
 const singleAnime = () => {
   const router = useRouter();
@@ -19,22 +18,21 @@ const singleAnime = () => {
 
   return (
     <div>
-      <div className={styles.returnContainer}>
+      <div className="">
         <Link href="/">Return to homepage</Link>
       </div>
-      <div className={styles.mainContainer}>
-        <div className={styles.imageContainer}>
-          <img src={data.Media.coverImage.extraLarge}></img>
+      <div className="">
+        <div className="">
+          {/* <img src={data.Media.coverImage.extraLarge}></img> */}
         </div>
-        <div className={styles.infoContainer}>
+        <div className={""}>
           <p>English title: {data.Media.title.english}</p>
-          <p>Japanese title: {data.Media.title.native}</p>
           <p>Number of episodes: {data.Media.episodes}</p>
           <p>Episode duration: {data.Media.duration}</p>
           <p>
             Genres:{" "}
             {data.Media.genres.map((genre) => (
-              <span>{genre} </span>
+              <span key={genre}>{genre} </span>
             ))}
           </p>
           <p>Average score: {data.Media.averageScore}</p>

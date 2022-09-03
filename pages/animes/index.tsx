@@ -1,47 +1,95 @@
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { useGetSingleAnime } from "../../utils/useAPIRequests";
-import styles from "../../styles/singleAnime.module.scss";
+/*
+First note - in Next.js pages have to be exported at the end of the file
+ rather than directly when their function is created
+ */
 
-const singleAnime = () => {
-  const router = useRouter();
-  const { id } = router.query;
+ import { dehydrate, QueryClient } from "@tanstack/react-query";
+ import { useGetTitles } from "../../utils/useAPIRequests";
+ import Link from "next/link";
+ import Image from "next/image";
+ import { gql, GraphQLClient } from "graphql-request";
+ 
+ 
+ 
+ const AnimeList = () => {
+   const { data, error, isLoading, isSuccess, status } = useGetTitles();
 
-  const { data, error, isLoading, isSuccess, status } = useGetSingleAnime(id);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error...: {console.log(error)}</div>;
-  }
-
-  return (
-    <div>
-      <div className={styles.returnContainer}>
-        <Link href="/">Return to homepage</Link>
-      </div>
-      <div className={styles.mainContainer}>
-        <div className={styles.imageContainer}>
-          <img src={data.Media.coverImage.extraLarge}></img>
-        </div>
-        <div className={styles.infoContainer}>
-          <p>English title: {data.Media.title.english}</p>
-          <p>Japanese title: {data.Media.title.native}</p>
-          <p>Number of episodes: {data.Media.episodes}</p>
-          <p>Episode duration: {data.Media.duration}</p>
-          <p>
-            Genres:{" "}
-            {data.Media.genres.map((genre) => (
-              <span>{genre} </span>
-            ))}
-          </p>
-          <p>Average score: {data.Media.averageScore}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default singleAnime;
+   // useEffect(() => {console.log(data, status, error); console.log("ping")}, [data, status]);
+ 
+   if (status === "loading") {
+     return <div>Loading...</div>;
+   }
+ 
+   if (status === "error") {
+     return <div>Error...</div>;
+   }
+ 
+   /*Note: need to learn more about images in next.js*/
+ 
+   return (
+     <div>
+      <div className=""><Link href="/">Back to the Homepage</Link></div>
+        <div className="">
+         {data.Page.media.map((item) => (
+           <Link key={`${item.id}_${item.title.english}`} href={`/animes/${item.id}`}>
+             <div className="">
+               <Image src={item.coverImage.extraLarge} alt={item.title.english} width="400" height="600" />
+               <p>{item.title.english}</p>
+             </div>
+           </Link>
+         ))}
+       </div>
+     </div>
+   );
+ };
+ 
+ async function getTitles() {
+      const ANILIST_QUERY_URL = "https://graphql.anilist.co";
+       const client = new GraphQLClient(ANILIST_QUERY_URL, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+       const titlesData = await client.request(gql`{
+         Page(perPage: 50) {
+           media(isAdult: false) {
+             id
+             title {
+               romaji
+               english
+               native
+               userPreferred
+             }
+             startDate {
+               year
+               month
+               day
+             }
+             coverImage {
+               extraLarge
+             large
+             medium
+             color
+             }
+           }
+         }
+       }`);
+      return titlesData;
+    }
+ 
+ export async function getStaticProps() {
+ 
+   const queryClient = new QueryClient();
+ 
+   await queryClient.prefetchQuery(["get-titles"], getTitles);
+ 
+   return {
+     props: {
+       dehydratedState: dehydrate(queryClient),
+       didSomething: true,
+     },
+   };
+ }
+ 
+ export default AnimeList;
